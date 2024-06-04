@@ -1,0 +1,170 @@
+﻿
+@{
+    Layout = null;
+}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile Page</title>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css'>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.3/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/css/mdb.min.css'>
+
+    <style>
+        body {
+            background: #eee;
+        }
+
+        html,
+        body,
+        .view {
+        }
+
+        .navbar-brand {
+            color: #fff !important;
+        }
+
+        .profile-photo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .flex-menu {
+            display: flex;
+        }
+
+            .flex-menu li:not(:last-child) {
+                margin-right: 40px;
+            }
+
+        .S {
+            display: block;
+            max-width: 100%;
+            height: 309px;
+        }
+
+        .full-bg-img, .view .content, .view .mask {
+            left: 0;
+            overflow: hidden;
+            /* height:100%; */
+            width: 100%;
+            top: 0
+        }
+    </style>
+</head>
+<body>
+    <main>
+
+        <div class="container">
+
+
+            <div class="row" id="user-posts">
+
+            </div>
+
+        </div>
+
+
+
+    </main>
+    <script src="~/Script/Script.js"></script>
+    <script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.3/js/bootstrap.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js'></script>
+    <script>
+        $(document).ready(function () {
+            var userId = localStorage.getItem('UserId');
+            $.ajax({
+                url: '/api/post/GetUserArchievedPosts?userId=' + userId,
+                type: 'GET',
+                success: function (response) {
+                   
+                    response.UserPosts.forEach(function (post) {
+                        var postImageUrl = "/" + post.MediaURL;
+                        var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                            '<div class="view overlay hm-black-light m-b-2">' +
+                            '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                            '<div class="mask flex-center">' +
+                            '<ul class="flex-menu">' +
+                            //'<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                            //'<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+                            
+                            '<li><p class="white-text"><i class="fa fa-share-square-o" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                            '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true"></i></p></li>' +
+                            '</ul>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+
+                        $('#user-posts').append(postHTML);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching user profile and posts:', error);
+                }
+            });
+        });
+
+
+
+        $(document).on('click', '.fa-share-square-o', function () {
+            var $this = $(this);
+            var PostId = $this.data('post-id');
+            var UserId = localStorage.getItem('UserId');
+
+            $.ajax({
+                url: '/api/post/UnArchivePost',
+                method: 'POST',
+                data: { PostID: PostId, UserID: UserId },
+                success: function (response) {
+                    if (response.success) {
+
+                    } else {
+                        console.log('Archive failed');
+                    }
+                    $('#user-posts').empty();
+                    var userId = localStorage.getItem('UserId');
+                    $.ajax({
+                        url: '/api/post/GetUserArchievedPosts?userId=' + userId,
+                        type: 'GET',
+                        success: function (response) {
+
+                            response.UserPosts.forEach(function (post) {
+                                var postImageUrl = "/" + post.MediaURL;
+                                var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                                    '<div class="view overlay hm-black-light m-b-2">' +
+                                    '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                                    '<div class="mask flex-center">' +
+                                    '<ul class="flex-menu">' +
+                                    //'<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                                    //'<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+
+                                    '<li><p class="white-text"><i class="fa fa-share-square-o" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                    '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true"></i></p></li>' +
+                                    '</ul>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>';
+
+
+                                $('#user-posts').append(postHTML);
+                            });
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error fetching user profile and posts:', error);
+                        }
+                    });
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        });
+    </script>
+
+
+</body>
+</html>

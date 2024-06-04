@@ -1,0 +1,631 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile Page</title>
+    <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css'>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.3/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/css/mdb.min.css'>
+
+    <style>
+        body {
+            background: #eee;
+        }
+
+        html,
+        body,
+        .view {
+            height: 100%;
+        }
+
+        .navbar-brand {
+            color: #fff !important;
+        }
+
+        .profile-photo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .flex-menu {
+            display: flex;
+        }
+
+            .flex-menu li:not(:last-child) {
+                margin-right: 40px;
+            }
+        .S {
+            display: block;
+            max-width: 100%;
+            height: 309px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+
+        <div class="container">
+            @*<div class="row m-b-r m-t-3">
+                <div class="col-md-2 offset-md-1">
+                    <div class="profile-img">
+                        <img src="" alt="" class="img-circle img-fluid" id="profile-picture">
+                    </div>
+                </div>
+                <div class="col-md-9 p-t-2">
+
+                    <h2 class="h2-responsive" id="username"></h2>
+                    <p id="fullname"></p>
+
+                    <ul class="flex-menu" id="user-stats">
+                        <li><strong id="post-count"></strong> posts</li>
+                        <li><strong id="follower-count"></strong> followers</li>
+                        <li><strong id="following-count"></strong> following</li>
+                        <li><a href="#" class="btn btn-info-outline waves-effect" id="edit-profile-btn">Edit Profile</a></li>
+                        <li><a href="@Url.Action("Archieve", "Home")" class="btn btn-info-outline waves-effect" id="edit-profile-btn">Archieve Posts</a></li>
+                    </ul>
+                </div>
+            </div>*@
+
+            <div class="row" id="user-posts">
+
+            </div>
+
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="edit-profile-modal" tabindex="-1" role="dialog" aria-labelledby="edit-profile-modal-label" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="edit-profile-modal-label">Edit Profile</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Profile editing form -->
+                        <form id="edit-profile-form">
+                            @*<label for="username">Username:</label>
+                                <input type="text" id="username" name="username" required><br><br>*@
+
+                            <label for="fullname">Full Name:</label>
+                            <input type="text" id="fullusername" name="fullname"><br><br>
+
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" required><br><br>
+
+
+
+                            <label for="bio">Bio:</label>
+                            <textarea id="bio" name="bio"></textarea><br><br>
+
+                            <label for="website">Website:</label>
+                            <input type="url" id="website" name="website"><br><br>
+
+                            <label for="gender">Gender:</label>
+                            <select id="gender" name="gender">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select><br><br>
+
+                            <label for="dob">Date of Birth:</label>
+                            <input type="date" id="dob" name="dob"><br><br>
+
+                            <label for="phone">Phone:</label>
+                            <input type="tel" id="phone" name="phone"><br><br>
+
+                            <!-- Profile picture preview -->
+                            <img id="profile-picture-preview1" src="" alt="Profile Picture" style="height:200px;width:200px;"><br><br>
+                            <input type="file" id="profile-picture-preview" class="form-control-file mb-3" name="profile-picture"><br><br>
+
+
+                        </form>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" id="UpdateData" class="edit-profile-form btn btn-primary">Update Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <script src="~/Script/Script.js"></script>
+    <script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.3/js/bootstrap.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.1.1/js/mdb.min.js'></script>
+    <script>
+        $(document).ready(function () {
+            var loggedInUserId = localStorage.getItem('UserId');
+            $.ajax({
+                url: '/api/post/GetUserProfileAndPosts',
+                type: 'GET',
+                data: { userId: loggedInUserId },
+                success: function (response) {
+                    $('#user-posts').empty();
+
+                    // Construct the HTML for the profile section
+                    var profileHTML = '<div class="row m-b-r m-t-3">' +
+                        '<div class="col-md-2 offset-md-1">' +
+                        '<div class="profile-img">' +
+                        '<img src="' + "/" + response.UserProfile[0].ProfilePictureURL + '" alt="" class="img-circle img-fluid" id="profile-picture">' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-md-9 p-t-2">' +
+                        '<h2 class="h2-responsive" id="username">' + response.UserProfile[0].Username + '</h2>' +
+                        '<p id="fullname">' + response.UserProfile[0].FullName + '</p>' +
+                        '<ul class="flex-menu" id="user-stats">' +
+                        '<li><strong id="post-count">' + response.UserProfile[0].PostCount + '</strong> posts</li>' +
+                        '<li><strong id="follower-count" data-user-id="' + loggedInUserId + '">' + response.UserProfile[0].FollowerCount + '</strong> followers</li>' +
+                        '<li><strong id="following-count" data-user-id="' + loggedInUserId + '">' + response.UserProfile[0].FollowingCount + '</strong> following</li>' +
+/**/
+ '<li><a href="#" class="btn btn-info-outline waves-effect" id="edit-profile-btn">Edit Profile</a></li>' +
+            '<li><a href="/Home/Archieve" class="btn btn-info-outline waves-effect" id="edit-profile-btn">Archieve Posts</a></li>' +
+            '</ul>' +
+            '</div>' +
+            '</div>';
+
+        // Append the profile HTML to the container
+        $('.container').prepend(profileHTML);
+
+        // Process user posts
+        response.UserPosts.forEach(function (post) {
+            var postImageUrl = "/" + post.MediaURL;
+            var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                '<div class="view overlay hm-black-light m-b-2">' +
+                '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                '<div class="mask flex-center">' +
+                '<ul class="flex-menu">' +
+                '<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                '<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+                '<li><p class="white-text"><i class="fa fa-archive" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                '</ul>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            $('#user-posts').append(postHTML);
+        });
+    },
+    error: function (xhr, status, error) {
+        console.error('Error fetching user profile and posts:', error);
+    }
+});
+                        /**/
+
+                    });
+
+    </script>
+    <script>
+
+        $(document).on("click", "#follower-count", function () {
+            var userId = $(this).data("user-id");
+            window.location.href = '/Home/followers/?userId=' + userId;
+        });
+
+        // Redirect to the followings page with user ID when clicking on following count
+        $(document).on("click", "#following-count", function () {
+            var userId = $(this).data("user-id");
+            window.location.href = '/Home/followings/?userId=' + userId;
+        });
+        $(document).ready(function () {
+
+            $('#profile-picture-preview').change(function () {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    $('#profile-picture-preview1').attr('src', event.target.result);
+                }
+                reader.readAsDataURL(file);
+            });
+
+            //$('#UpdateData').click(function (event) {
+            //    // Prevent the default form submission behavior
+            //    event.preventDefault();
+
+            //    var UserID = localStorage.getItem('UserId');
+            //    var email = $('#email').val();
+            //    var fullname = $('#fullusername').val();
+            //    var bio = $('#bio').val();
+            //    var website = $('#website').val();
+            //    var gender = $('#gender').val();
+            //    var dob = $('#dob').val();
+            //    var phone = $('#phone').val();
+
+            //    // Create a FormData object to handle the file upload
+            //    var formData = new FormData();
+            //    formData.append('UserID', UserID);
+            //    formData.append('Email', email);
+            //    formData.append('FullName', fullname);
+            //    formData.append('Bio', bio);
+            //    formData.append('Website', website);
+            //    formData.append('Gender', gender);
+            //    formData.append('DateOfBirth', dob);
+            //    formData.append('PhoneNumber', phone);
+
+            //    // Get the file from the file input
+            //    var fileInput = $('#profile-picture-preview')[0];
+            //    if (fileInput.files.length > 0) {
+            //        formData.append('profile-picture', fileInput.files[0]);
+            //    }
+
+            //    // Send the FormData object to the server via AJAX
+            //    $.ajax({
+            //        url: '/api/post/UpdateUserProfile', // Endpoint to handle the form submission
+            //        type: 'POST', // HTTP method
+            //        data: formData, // FormData object containing form data
+            //        contentType: false, // Set contentType to false when sending FormData
+            //        processData: false, // Set processData to false when sending FormData
+            //        success: function (response) {
+
+            //            $('#edit-profile-modal').modal('hide');
+            //            var loggedInUserId = localStorage.getItem('UserId');
+            //            $.ajax({
+            //                url: '/api/post/GetUserProfileAndPosts',
+            //                type: 'GET',
+            //                data: { userId: loggedInUserId },
+            //                success: function (response) {
+            //                    var pic = response.UserProfile[0].ProfilePictureURL;
+            //                    var picc = "/" + pic;
+            //                    $('#profile-picture').attr('src', picc);
+            //                    $('#username').text(response.UserProfile[0].Username);
+            //                    $('#fullname').text(response.UserProfile[0].FullName);
+            //                    $('#post-count').text(response.UserProfile[0].PostCount);
+            //                    $('#follower-count').text(response.UserProfile[0].FollowerCount);
+            //                    $('#following-count').text(response.UserProfile[0].FollowingCount);
+
+
+            //                    response.UserPosts.forEach(function (post) {
+            //                        var postImageUrl = "/" + post.MediaURL;
+            //                        var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+            //                            '<div class="view overlay hm-black-light m-b-2">' +
+            //                            '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+            //                            '<div class="mask flex-center">' +
+            //                            '<ul class="flex-menu">' +
+            //                            '<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+            //                            '<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+            //                            '<li><p class="white-text"><i class="fa fa-archive" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+            //                            '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+            //                            '</ul>' +
+            //                            '</div>' +
+            //                            '</div>' +
+            //                            '</div>';
+
+
+            //                        $('#user-posts').append(postHTML);
+            //                    });
+            //                },
+            //                error: function (xhr, status, error) {
+            //                    console.error('Error fetching user profile and posts:', error);
+            //                }
+            //            });// Hide the modal
+            //        },
+            //        error: function (xhr, status, error) {
+            //            // Handle error response
+            //            console.error('Error updating user profile:', error);
+            //        }
+            //    });
+            //});
+
+
+            // Open the modal when "Edit Profile" is clicked
+            $(document).on("click", "#edit-profile-btn", function () {
+         
+                $('#edit-profile-modal').modal('show');
+                fetchdata();
+            });
+
+            // Function to fetch user data and populate form fields
+            function fetchdata() {
+                var loggedInUserId = localStorage.getItem('UserId');
+                // Fetch user data and populate form
+                $.ajax({
+                    url: '/api/post/GetUserProfileData',
+                    type: 'GET',
+                    data: { userId: loggedInUserId },
+                    success: function (data) {
+                        // Populate form fields with user data
+                        $('#username').val(data.Username);
+                        $('#email').val(data.Email);
+                        $('#fullusername').val(data.FullName);
+                        $('#bio').val(data.Bio);
+                        $('#website').val(data.Website);
+                        $('#gender').val(data.Gender);
+                        $('#dob').val(data.DateOfBirth);
+                        $('#phone').val(data.PhoneNumber);
+                        $('#profile-picture-preview1').attr('src', "/" + data.ProfilePictureURL);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching user data:', error);
+                    }
+                });
+            }
+
+
+
+
+           
+
+            //////////
+            //ARCHEVE
+            /////
+            $(document).on('click', '.fa-archive', function () {
+                var $this = $(this);
+                var PostId = $this.data('post-id');
+                var UserId = localStorage.getItem('UserId');
+
+                $.ajax({
+                    url: '/api/post/ArchivePost',
+                    method: 'POST',
+                    data: { PostID: PostId, UserID: UserId },
+                    success: function (response) {
+                        if (response.success) {
+
+                        } else {
+                            console.log('Archive failed');
+                        }
+                        $('#user-posts').empty();
+                        var loggedInUserId = localStorage.getItem('UserId');
+                        $.ajax({
+                            url: '/api/post/GetUserProfileAndPosts',
+                            type: 'GET',
+                            data: { userId: loggedInUserId },
+                            success: function (response) {
+                                var pic = response.UserProfile[0].ProfilePictureURL;
+                                var picc = "/" + pic;
+                                $('#profile-picture').attr('src', picc);
+                                $('#username').text(response.UserProfile[0].Username);
+                                $('#fullname').text(response.UserProfile[0].FullName);
+                                $('#post-count').text(response.UserProfile[0].PostCount);
+                                $('#follower-count').text(response.UserProfile[0].FollowerCount);
+                                $('#following-count').text(response.UserProfile[0].FollowingCount);
+
+
+                                response.UserPosts.forEach(function (post) {
+                                    var postImageUrl = "/" + post.MediaURL;
+                                    var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                                        '<div class="view overlay hm-black-light m-b-2">' +
+                                        '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                                        '<div class="mask flex-center">' +
+                                        '<ul class="flex-menu">' +
+                                        '<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-archive" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '</ul>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>';
+
+
+                                    $('#user-posts').append(postHTML);
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching user profile and posts:', error);
+                            }
+                        });
+                        $('#user-posts').empty();
+                        var loggedInUserId = localStorage.getItem('UserId');
+                        $.ajax({
+                            url: '/api/post/GetUserProfileAndPosts',
+                            type: 'GET',
+                            data: { userId: loggedInUserId },
+                            success: function (response) {
+                                var pic = response.UserProfile[0].ProfilePictureURL;
+                                var picc = "/" + pic;
+                                $('#profile-picture').attr('src', picc);
+                                $('#username').text(response.UserProfile[0].Username);
+                                $('#fullname').text(response.UserProfile[0].FullName);
+                                $('#post-count').text(response.UserProfile[0].PostCount);
+                                $('#follower-count').text(response.UserProfile[0].FollowerCount);
+                                $('#following-count').text(response.UserProfile[0].FollowingCount);
+
+
+                                response.UserPosts.forEach(function (post) {
+                                    var postImageUrl = "/" + post.MediaURL;
+                                    var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                                        '<div class="view overlay hm-black-light m-b-2">' +
+                                        '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                                        '<div class="mask flex-center">' +
+                                        '<ul class="flex-menu">' +
+                                        '<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-archive" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '</ul>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>';
+
+
+                                    $('#user-posts').append(postHTML);
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching user profile and posts:', error);
+                            }
+                        });
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            // Assuming this code is within a $(document).ready() function or equivalent
+            $(document).on('click', '.fa-trash', function () {
+                var postId = $(this).data('post-id');
+
+                // Send AJAX request to delete the post
+                $.ajax({
+                    url: '/api/post/DeletePost', // Replace with the actual endpoint URL
+                    type: 'DELETE', // Assuming you're using HTTP DELETE method for deletion
+                    data: { PostID: postId }, // Send the PostID as data
+                    success: function (response) {
+                        $('#user-posts').empty();
+                        var loggedInUserId = localStorage.getItem('UserId');
+                        $.ajax({
+                            url: '/api/post/GetUserProfileAndPosts',
+                            type: 'GET',
+                            data: { userId: loggedInUserId },
+                            success: function (response) {
+                                var pic = response.UserProfile[0].ProfilePictureURL;
+                                var picc = "/" + pic;
+                                $('#profile-picture').attr('src', picc);
+                                $('#username').text(response.UserProfile[0].Username);
+                                $('#fullname').text(response.UserProfile[0].FullName);
+                                $('#post-count').text(response.UserProfile[0].PostCount);
+                                $('#follower-count').text(response.UserProfile[0].FollowerCount);
+                                $('#following-count').text(response.UserProfile[0].FollowingCount);
+
+
+                                response.UserPosts.forEach(function (post) {
+                                    var postImageUrl = "/" + post.MediaURL;
+                                    var postHTML = '<div class="col-sm-12 col-md-6 col-lg-4" data-post-id="' + post.PostID + '">' +
+                                        '<div class="view overlay hm-black-light m-b-2">' +
+                                        '<img src="' + postImageUrl + '" class="img-fluid S" alt="">' +
+                                        '<div class="mask flex-center">' +
+                                        '<ul class="flex-menu">' +
+                                        '<li><p class="white-text"><i class="fa fa-comment" aria-hidden="true"></i> ' + post.CommentsCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-heart" aria-hidden="true"></i> ' + post.LikesCount + '</p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-archive" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '<li><p class="white-text"><i class="fa fa-trash" aria-hidden="true" data-post-id="' + post.PostID + '"></i></p></li>' +
+                                        '</ul>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>';
+
+
+                                    $('#user-posts').append(postHTML);
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Error fetching user profile and posts:', error);
+                            }
+                        });
+
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error response
+                        console.error('Error deleting post:', error);
+                    }
+                });
+            });
+
+
+
+
+
+
+
+
+
+        });
+    </script>
+    <script>
+    $(document).ready(function () {
+        // Function to validate and update input border color
+        function validateAndUpdateInput(inputElement, regex) {
+            var value = inputElement.val().trim();
+            var isValid = regex.test(value);
+            inputElement.css('border-color', isValid ? 'green' : 'red');
+            return isValid;
+        }
+
+        // Function to validate full name format
+        function validateFullName() {
+            var fullNameRegex = /^[a-zA-Z]+ [a-zA-Z]+$/; // Allow only alphabets with one space
+            return validateAndUpdateInput($('#fullusername'), fullNameRegex);
+        }
+
+        // Function to validate date of birth
+        function validateDateOfBirth() {
+            var today = new Date();
+            var selectedDate = new Date($('#dob').val());
+            var isValid = selectedDate <= today;
+            $('#dob').css('border-color', isValid ? 'green' : 'red');
+            return isValid;
+        }
+
+        // Function to validate all input fields
+        function validateForm() {
+           /* var emailRegex = /^[^\s@@+@@[^\s@@]+\.[^\s@@]+$/;*/
+            var phoneRegex = /^\d{10}$/;
+
+           /* var emailValid = validateAndUpdateInput($('#email'), emailRegex);*/
+            var fullNameValid = validateFullName();
+            var dobValid = validateDateOfBirth();
+            var phoneValid = validateAndUpdateInput($('#phone'), phoneRegex);
+
+            return fullNameValid && dobValid && phoneValid;
+        }
+
+        // Update input border color on input change
+        $('input').on('input', function () {
+            validateAndUpdateInput($(this), /.*/); // Use any non-empty regex for visual validation
+        });
+
+        // Handle form submission
+        $('#UpdateData').click(function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Validate inputs
+            var allInputsValid = validateForm();
+
+            // Submit form if all inputs are valid
+            if (allInputsValid) {
+                // Your existing AJAX code for updating the user profile
+                var UserID = localStorage.getItem('UserId');
+                var email = $('#email').val();
+                var fullname = $('#fullusername').val();
+                var bio = $('#bio').val();
+                var website = $('#website').val();
+                var gender = $('#gender').val();
+                var dob = $('#dob').val();
+                var phone = $('#phone').val();
+
+                var formData = new FormData();
+                formData.append('UserID', UserID);
+                formData.append('Email', email);
+                formData.append('FullName', fullname);
+                formData.append('Bio', bio);
+                formData.append('Website', website);
+                formData.append('Gender', gender);
+                formData.append('DateOfBirth', dob);
+                formData.append('PhoneNumber', phone);
+
+                var fileInput = $('#profile-picture-preview')[0];
+                if (fileInput.files.length > 0) {
+                    formData.append('profile-picture', fileInput.files[0]);
+                }
+
+                $.ajax({
+                    url: '/api/post/UpdateUserProfile',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $('#edit-profile-modal').modal('hide');
+
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error response
+                        console.error('Error updating user profile:', error);
+                    }
+                });
+            } else {
+                // Display error message or take any other action as needed
+                alert('Please fill in all required fields correctly.');
+            }
+        });
+    });
+    </script>
+</body>
+</html>
